@@ -6,7 +6,7 @@ const nameSearch = document.getElementById("name-search");
 const defaultFirst = "AABAN";
 const defaultLast = "ZYWICKI";
 
-let searchType = "last";
+let searchType = "first";
 
 const setSearchType = (event) => {
     const newSearchType = event.target.value;
