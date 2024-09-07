@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
+
     <style>
         body {
             background-color: black;
@@ -15,7 +16,17 @@
             height: 100vh;
         }
 
+        @font-face {
+            font-family: "TwoHours";
+            src: url("fonts/TwoHours.woff") format("woff");
+        }
+
+        .two-hours-font {
+            font-family: 'TwoHours', handwriting;
+        }
+
     </style>
+
     <script src="./lib.js" defer></script>
 </head>
 
@@ -37,11 +48,11 @@
             </div>
         </div>
         <div style="margin-top: 1rem;">
-            <label id="name-search-label" for="name-search">You are</label>
+            <label id="name-search-label" for="name-search" class="two-hours-font">You are</label>
             <input id="name-search" placeholder="AABAN" autofocus>
         </div>
     </div>
-    <div id="names-output">
+    <div id="names-output" class="two-hours-font">
 
     </div>
 </body>
