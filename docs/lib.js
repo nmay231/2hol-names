@@ -23,6 +23,7 @@ const setSearchType = (event) => {
     }
 
     nameSearch.focus();
+    nameSearchHandler();
 }
 
 lastNameSelected.addEventListener("change", setSearchType);
@@ -49,25 +50,35 @@ const sharedPrefix = (a, b) => {
 }
 
 
-const filterNames = (event) => {
-    const attemptedName = event.target.value.toUpperCase() || (searchType === "last" ? defaultLast : defaultFirst);
-    const nameList = searchType === "last" ? lastNames : firstNames;
-    const result = searchNames(nameList, attemptedName);
-    if (result) {
-        document.getElementById("names-output").innerHTML = `<h3>Closest Names</h3>
-        <ul>
-            <li>${result}</li>
-        </ul>`;
+const updateListOfAdjacentNames = (nameList, attemptedName) => {
+    const index = findClosestName(nameList, attemptedName);
+    console.log(nameList[index]);
+
+    // TODO: How to change starting index of list if I use <ol>?
+    const list = document.createElement("ul");
+    const upperBound = Math.min(index + 10, nameList.length);
+    for (let i = Math.max(0, index - 10); i < upperBound; i++) {
+        const li = document.createElement("li");
+        if (i !== index) {
+            li.innerText = nameList[i];
+        } else {
+            const prefix = sharedPrefix(nameList[i], attemptedName);
+            li.innerHTML = `<strong style="color: green;">${prefix}</strong>${nameList[i].substring(prefix.length)}`;
+        }
+        list.appendChild(li);
     }
+    const output =document.getElementById("names-output");
+    while (output.hasChildNodes()) {
+        output.removeChild(output.firstChild);
+    }
+    output.appendChild(list);
 
 }
-const searchNames = (nameList, attemptedName) => {
-    let result = null;
-
+const findClosestName = (nameList, attemptedName) => {
     if (attemptedName < nameList[0]) {
-        result = nameList[0];
+        return 0;
     } else if (attemptedName > nameList[nameList.length - 1]) {
-        result = nameList[nameList.length - 1];
+        return nameList.length - 1
     } else {
         let min = 0;
         let max = nameList.length - 1;
@@ -76,8 +87,7 @@ const searchNames = (nameList, attemptedName) => {
         while (min < max) {
             let possibleMatch = nameList[mid];
             if (attemptedName === possibleMatch) {
-                result = possibleMatch;
-                break;
+                return mid;
             } else if (attemptedName < possibleMatch) {
                 max = Math.max(mid - 1, min);
             } else if (attemptedName > possibleMatch) {
@@ -86,29 +96,28 @@ const searchNames = (nameList, attemptedName) => {
             mid = Math.trunc((min + max) / 2);
         }
 
-        if (result === null) {
-            const closest = nameList.slice(Math.max(0, mid - 1), mid + 2).slice(-2);
+        const closest = nameList.slice(mid, mid + 2);
 
-            if (closest.length !== 2) {
-                throw new Error("Expected two closest names");
-            }
-            const [before, after] = closest;
-            const sharedBefore = sharedPrefix(before, attemptedName);
-            const sharedAfter = sharedPrefix(after, attemptedName);
-            if (sharedBefore.length > sharedAfter.length) {
-                result = before;
-            } else if (sharedBefore.length < sharedAfter.length) {
-                result = after;
-            } else {
-                result = before.length < after.length ? before : after;
-            }
-            console.log(closest, min, max, mid);
+        if (closest.length !== 2) {
+            throw new Error("Expected two closest names");
+        }
+        const [before, after] = closest;
+        const sharedBefore = sharedPrefix(before, attemptedName);
+        const sharedAfter = sharedPrefix(after, attemptedName);
+        if (sharedBefore.length > sharedAfter.length) {
+            return mid;
+        } else if (sharedBefore.length < sharedAfter.length) {
+            return mid + 1;
+        } else {
+            return before.length < after.length ? mid : mid + 1;
         }
     }
-
-    console.log("result =", result);
-    // TODO: Just return in place
-    return result;
 }
 
-nameSearch.addEventListener("input", filterNames);
+const nameSearchHandler = () => {
+    const attemptedName = nameSearch.value.toUpperCase() || (searchType === "last" ? defaultLast : defaultFirst);
+    const nameList = searchType === "last" ? lastNames : firstNames;
+    updateListOfAdjacentNames(nameList, attemptedName);
+}
+
+nameSearch.addEventListener("input", nameSearchHandler);
