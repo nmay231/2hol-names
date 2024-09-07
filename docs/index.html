@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        body {
+            background-color: black;
+            color: white;
+            width: 90%;
+            max-width: 800px;
+            margin: 0 auto;
+            height: 100vh;
+        }
+
+    </style>
+    <script src="./lib.js" defer></script>
+</head>
+
+<body>
+    <div style="margin-top: 10vh;">
+
+        <h3>Closest Names</h3>
+        <div>
+            <h4>Search by</h4>
+            <div style="display: flex; flex-direction: row;">
+                <div>
+                    <input id="first-or-last-last" name="first-or-last" type="radio" value="last" checked />
+                    <label for="first-or-last-last">Last Name</label>
+                </div>
+                <div>
+                    <input id="first-or-last-first" name="first-or-last" type="radio" value="first" />
+                    <label for="first-or-last-first">First Name</label>
+                </div>
+            </div>
+        </div>
+        <div style="margin-top: 1rem;">
+            <label id="name-search-label" for="name-search">I am</label>
+            <input id="name-search" placeholder="ZYWICKI" autofocus>
+        </div>
+    </div>
+</body>
+
+</html>
