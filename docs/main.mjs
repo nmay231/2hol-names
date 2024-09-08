@@ -60,6 +60,7 @@ const updateListOfAdjacentNames = (nameList, attemptedName) => {
         names.push(subString(nameList, index));
     }
 
+    const numberOfNamesBefore = nameList.substring(0, index).split('\n').length;
     names.reverse();
     names.push(subString(nameList, indexOfClosest));
 
@@ -77,7 +78,8 @@ const updateListOfAdjacentNames = (nameList, attemptedName) => {
 
     // TODO: How to change starting index of list if I use <ol>?
     const closestName = subString(nameList, indexOfClosest);
-    const list = document.createElement("ul");
+    const list = document.createElement("ol");
+    list.start = numberOfNamesBefore;
 
     for (const name of names) {
         const li = document.createElement("li");
