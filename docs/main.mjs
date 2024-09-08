@@ -1,18 +1,18 @@
-import { findClosestName, sharedPrefix } from "./lib.mjs";
+import { findClosestName, getNameOffsetBack, getNameOffsetForward, sharedPrefix, subString } from "./lib.mjs";
 
 const lastNameSelected = document.getElementById("first-or-last-last");
 const firstNameSelected = document.getElementById("first-or-last-first");
 const nameSearch = document.getElementById("name-search");
 
-export let firstNames = [];
-export let lastNames = [];
+let firstNames;
+let lastNames;
 
 fetch("./firstNames.txt").then(response => response.text()).then(text => {
-    firstNames = text.trim().split("\n");
+    firstNames = text;
 });
 
 fetch("./lastNames.txt").then(response => response.text()).then(text => {
-    lastNames = text.trim().split("\n");
+    lastNames = text;
 });
 
 
@@ -42,24 +42,54 @@ const setSearchType = (event) => {
 lastNameSelected.addEventListener("change", setSearchType);
 firstNameSelected.addEventListener("change", setSearchType);
 
+/**
+ * @param {string} nameList
+ * @param {string} attemptedName
+ */
 const updateListOfAdjacentNames = (nameList, attemptedName) => {
-    const index = findClosestName(nameList, attemptedName);
-    console.log(nameList[index]);
+    const indexOfClosest = findClosestName(nameList, attemptedName);
+
+    let names = [];
+    let index = indexOfClosest;
+    for (let i = 0; i < 10; i++) {
+        if (index === 0) {
+            break;
+        }
+        index = getNameOffsetBack(nameList, index - 2);
+
+        names.push(subString(nameList, index));
+    }
+
+    names.reverse();
+    names.push(subString(nameList, indexOfClosest));
+
+    index = indexOfClosest;
+    let previousIndex = index;
+    for (let i = 0; i < 10; i++) {
+        index = getNameOffsetForward(nameList, index);
+        if (index === previousIndex) {
+            break;
+        }
+        previousIndex = index;
+
+        names.push(subString(nameList, index));
+    }
 
     // TODO: How to change starting index of list if I use <ol>?
+    const closestName = subString(nameList, indexOfClosest);
     const list = document.createElement("ul");
-    const upperBound = Math.min(index + 10, nameList.length);
-    for (let i = Math.max(0, index - 10); i < upperBound; i++) {
+
+    for (const name of names) {
         const li = document.createElement("li");
-        if (i !== index) {
-            li.innerText = nameList[i];
+        if (name !== closestName) {
+            li.innerText = name;
         } else {
-            const prefix = sharedPrefix(nameList[i], attemptedName);
-            li.innerHTML = `<strong style="color: green;">${prefix}</strong>${nameList[i].substring(prefix.length)}`;
+            const prefix = sharedPrefix(name, attemptedName);
+            li.innerHTML = `<strong style="color: green;">${prefix}</strong>${name.substring(prefix.length)}`;
         }
         list.appendChild(li);
     }
-    const output =document.getElementById("names-output");
+    const output = document.getElementById("names-output");
     while (output.hasChildNodes()) {
         output.removeChild(output.firstChild);
     }

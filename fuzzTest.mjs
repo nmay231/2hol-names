@@ -1,6 +1,6 @@
 import { spawn } from "child_process";
 import fs from "fs";
-import { findClosestName } from "./docs/lib.mjs";
+import { findClosestName, subString } from "./docs/lib.mjs";
 
 const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 const random = (min, max) => {
@@ -21,8 +21,11 @@ const randomString = (length) => {
         ...Array.from(ALPHABET),
     ]
 
-    const firstNames = fs.readFileSync('./docs/firstNames.txt').toString().trim().split('\n');
-    const lastNames = fs.readFileSync('./docs/lastNames.txt').toString().trim().split('\n');
+    const firstNames = fs.readFileSync('./docs/firstNames.txt').toString();
+    const lastNames = fs.readFileSync('./docs/lastNames.txt').toString();
+    
+    const firstNamesList = firstNames.trim().split('\n');
+    const lastNamesList = lastNames.trim().split('\n');
 
     const grunge = (name) => {
         const slice = name.slice(0, random(0, name.length - 1));
@@ -30,16 +33,16 @@ const randomString = (length) => {
     }
 
     for (let i = 0; i < 1000; i++) {
-        grunge(firstNames[random(0, firstNames.length - 1)]);
-        grunge(lastNames[random(0, lastNames.length - 1)]);
+        grunge(firstNamesList[random(0, firstNamesList.length - 1)]);
+        grunge(lastNamesList[random(0, lastNamesList.length - 1)]);
         testNames.push(randomString(random(0, 10)));
     }
 
     for (let i = 0; i < 10; i++) {
-        grunge(firstNames[0]);
-        grunge(firstNames[firstNames.length - 1]);
-        grunge(lastNames[0]);
-        grunge(lastNames[lastNames.length - 1]);
+        grunge(firstNamesList[0]);
+        grunge(firstNamesList[firstNamesList.length - 1]);
+        grunge(lastNamesList[0]);
+        grunge(lastNamesList[lastNamesList.length - 1]);
     }
 
     testNames = testNames.filter((name, index, self) => self.indexOf(name) === index);
@@ -67,21 +70,23 @@ const randomString = (length) => {
     child.on('close', () => {
         console.log("Lengths should be the same:", testNames.length, output.length);
 
-        for (let i = 0; i < 10; i++) {
+        for (let i = 0; i < output.length; i++) {
             const input = testNames[i];
             const expected = output[i];
             const firstIndex = findClosestName(firstNames, input);
-            const firstName = firstNames[firstIndex];
+            const firstName = subString(firstNames, firstIndex);
             const lastIndex = findClosestName(lastNames, input);
-            const lastName = lastNames[lastIndex];
+            const lastName = subString(lastNames, lastIndex);
 
             if (firstName !== expected.first) {
                 console.log("Mismatch:", input, "expected =", expected.first, "actual =", firstName);
-                console.log(firstNames.slice(Math.max(0, firstIndex - 5), firstIndex + 5));
+                console.log(firstNames.slice(Math.max(0, firstIndex - 25), firstIndex + 25));
+            } else {
+                // console.log("First name:", input, "=>", firstName,"=", expected.first);
             }
             if (lastName !== expected.last) {
                 console.log("Mismatch:", input, expected.last, lastName);
-                console.log(lastNames.slice(Math.max(0, lastIndex - 5), lastIndex + 5));
+                console.log(lastNames.slice(Math.max(0, lastIndex - 25), lastIndex + 25));
             }
         }
     });
