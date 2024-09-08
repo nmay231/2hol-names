@@ -55,6 +55,9 @@ const randomString = (length) => {
             return { first, last };
         }));
     });
+    child.stderr.on('data', (data) => {
+        console.log(data.toString());
+    });
 
     for (const name of testNames) {
         child.stdin.write(`${name}\n`);
@@ -73,7 +76,7 @@ const randomString = (length) => {
             const lastName = lastNames[lastIndex];
 
             if (firstName !== expected.first) {
-                console.log("Mismatch:", input, expected.first, firstName);
+                console.log("Mismatch:", input, "expected =", expected.first, "actual =", firstName);
                 console.log(firstNames.slice(Math.max(0, firstIndex - 5), firstIndex + 5));
             }
             if (lastName !== expected.last) {

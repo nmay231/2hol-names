@@ -1,3 +1,8 @@
+/**
+ * @param {string} a
+ * @param {string} b
+ * @returns {string}
+ */
 export const sharedPrefix = (a, b) => {
     let i = 0;
     while (i < a.length && i < b.length && a[i] === b[i]) {
@@ -6,6 +11,12 @@ export const sharedPrefix = (a, b) => {
     return a.substring(0, i);
 }
 
+
+/**
+ * @param {string[]} nameList
+ * @param {string} attemptedName
+ * @returns {number} index of closest name
+ */
 export const findClosestName = (nameList, attemptedName) => {
     if (attemptedName < nameList[0]) {
         return 0;
