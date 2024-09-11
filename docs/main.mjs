@@ -87,7 +87,7 @@ const updateListOfAdjacentNames = (nameList, attemptedName) => {
             li.innerText = name;
         } else {
             const prefix = sharedPrefix(name, attemptedName);
-            const color = name === attemptedName ? "green" : "blue";
+            const color = name === attemptedName ? "green" : "#00c0ff";
             li.innerHTML = `<strong style="color: ${color};">${prefix}</strong>${name.substring(prefix.length)}`;
         }
         list.appendChild(li);
