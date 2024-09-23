@@ -7,13 +7,14 @@ const nameSearch = document.getElementById("name-search");
 let firstNames;
 let lastNames;
 
-fetch("./firstNames.txt").then(response => response.text()).then(text => {
-    firstNames = text;
-});
-
-fetch("./lastNames.txt").then(response => response.text()).then(text => {
-    lastNames = text;
-});
+const namesLoadedPromises = [
+    fetch("./firstNames.txt").then(response => response.text()).then(text => {
+        firstNames = text;
+    }),
+    fetch("./lastNames.txt").then(response => response.text()).then(text => {
+        lastNames = text;
+    }),
+];
 
 
 const defaultFirst = "AABAN";
@@ -107,3 +108,5 @@ const nameSearchHandler = () => {
 }
 
 nameSearch.addEventListener("input", nameSearchHandler);
+
+Promise.all(namesLoadedPromises).then(() => nameSearchHandler());
