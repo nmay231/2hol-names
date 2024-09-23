@@ -86,7 +86,7 @@ int sharedPrefixLength(const char* inA, const char* inB) {
 }
 
 // walk backward to find start of next name
-int getNameOffsetBack(char* inNameList, int inListLen, int inOffset) {
+int getNameIndexBackward(char* inNameList, int inListLen, int inOffset) {
     while (inOffset > 0 && inNameList[inOffset] != '\0') {
         inOffset--;
     }
@@ -98,13 +98,13 @@ int getNameOffsetBack(char* inNameList, int inListLen, int inOffset) {
     }
 }
 
-int getNameOffsetForward(char* inNameList, int inListLen, int inOffset) {
+int getNameIndexForward(char* inNameList, int inListLen, int inOffset) {
     int limit = inListLen - 1;
     while (inOffset < limit && inNameList[inOffset] != '\0') {
         inOffset++;
     }
     if (inOffset == limit) {
-        return getNameOffsetBack(inNameList, inListLen, limit - 1);
+        return getNameIndexBackward(inNameList, inListLen, limit - 1);
     } else {
         // walked forward off of \0
         return inOffset + 1;
@@ -119,28 +119,28 @@ const char* findCloseName(char* inString,
         return defaultName;
     }
 
-    // char* tempString = stringToUpperCase(inString);
-    char* tempString = inString;
+    // char* attemptedName = stringToUpperCase(inString);
+    char* attemptedName = inString;
 
     int limit = inListLen;
 
     int jumpSize = limit / 2;
-    int offset = jumpSize;
-    offset = getNameOffsetForward(inNameList, inListLen, offset);
+    int index = jumpSize;
+    index = getNameIndexForward(inNameList, inListLen, index);
 
-    int lastDiff = 1;
+    int latestDiff = 1;
 
     int hitStartCount = 0;
     int hitEndCount = 0;
 
-    while (lastDiff != 0) {
-        char* testString = &(inNameList[offset]);
-        int prevDiff = lastDiff;
-        lastDiff = strcmp(tempString, testString);
+    while (latestDiff != 0) {
+        char* testString = &(inNameList[index]);
+        int prevDiff = latestDiff;
+        latestDiff = strcmp(attemptedName, testString);
 
-        int lastUsedOffset = offset;
+        int lastUsedIndex = index;
 
-        if (getSign(lastDiff) != getSign(prevDiff)) {
+        if (getSign(latestDiff) != getSign(prevDiff)) {
             // overshot
             // smaller jump in opposite direction
             jumpSize /= 2;
@@ -150,81 +150,86 @@ const char* findCloseName(char* inString,
             break;
         }
 
-        if (lastDiff > 0) {
-            // further down
-            offset += jumpSize;
+        if (latestDiff > 0) {
+            // Later in the list
+            index += jumpSize;
 
-            if (offset >= limit) {
+            if (index >= limit) {
                 // walked off end
-                offset = limit - 2;
-                offset = getNameOffsetBack(inNameList, inListLen, offset);
+                index = limit - 2;
+                index = getNameIndexBackward(inNameList, inListLen, index);
                 hitEndCount++;
                 if (hitEndCount > 1) {
                     break;
                 }
             } else {
-                offset = getNameOffsetForward(inNameList, inListLen, offset);
+                index = getNameIndexForward(inNameList, inListLen, index);
                 hitEndCount = 0;
-                if (offset == lastUsedOffset) {
+                if (index == lastUsedIndex) {
                     // back to same location as last time?
                     // stuck
+                    // TODO: This never happens. It's probably an old bug.
+                    std::cerr << "Repeated location when going forwards"
+                              << std::endl;
                     break;
                 }
             }
-        } else if (lastDiff < 0) {
-            // further up
-            offset -= jumpSize;
+        } else if (latestDiff < 0) {
+            // Earlier in the list
+            index -= jumpSize;
 
-            if (offset < 0) {
+            if (index < 0) {
                 // walked off start
-                offset = 0;
+                index = 0;
                 hitStartCount++;
                 if (hitStartCount > 1) {
                     break;
                 }
             } else {
                 hitStartCount = 0;
-                offset = getNameOffsetBack(inNameList, inListLen, offset);
-                if (offset == lastUsedOffset) {
+                index = getNameIndexBackward(inNameList, inListLen, index);
+                if (index == lastUsedIndex) {
                     // back to same location as last time?
                     // stuck
+                    std::cerr << "Repeated location when going backwards"
+                              << std::endl;
                     break;
                 }
             }
         }
     }
 
-    if (lastDiff != 0 && hitEndCount == 0 && hitStartCount == 0) {
+    if (latestDiff != 0 && hitEndCount == 0 && hitStartCount == 0) {
         // no exact match
         // step backward until we find names that are before
         // and after us alphabetically
 
         int step = 1;
-        if (lastDiff < 0) {
+        if (latestDiff < 0) {
             step = -1;
         }
-        int nextDiff = lastDiff;
-        int lastSign = getSign(lastDiff);
+        int nextDiff = latestDiff;
+        int lastSign = getSign(latestDiff);
         while (getSign(nextDiff) == lastSign) {
-            offset += 2 * step;
+            index += 2 * step;
 
-            if (offset <= 0) {
-                offset = 0;
+            if (index <= 0) {
+                index = 0;
                 break;
             }
-            if (offset >= limit) {
-                offset = limit - 1;
+            if (index >= limit) {
+                index = limit - 1;
                 break;
             }
 
             if (step < 0) {
-                offset = getNameOffsetBack(inNameList, inListLen, offset);
+                index = getNameIndexBackward(inNameList, inListLen, index);
             } else {
-                offset = getNameOffsetForward(inNameList, inListLen, offset);
+                index = getNameIndexForward(inNameList, inListLen, index);
             }
 
-            char* testString = &(inNameList[offset]);
-            nextDiff = strcmp(tempString, testString);
+            char* testString = &(inNameList[index]);
+            nextDiff = strcmp(attemptedName, testString);
         }
 
         if (nextDiff != 0) {
@@ -232,47 +237,47 @@ const char* findCloseName(char* inString,
             // we've found the two strings alphabetically around it though
             // use one with longest shared prefix
 
-            int crossOffset = offset;
-            int prevOffset = offset - 2 * step;
+            int crossOffset = index;
+            int prevOffset = index - 2 * step;
 
             if (step < 0) {
                 prevOffset =
-                    getNameOffsetForward(inNameList, inListLen, prevOffset);
+                    getNameIndexForward(inNameList, inListLen, prevOffset);
             } else {
                 prevOffset =
-                    getNameOffsetBack(inNameList, inListLen, prevOffset);
+                    getNameIndexBackward(inNameList, inListLen, prevOffset);
             }
 
             int crossSim =
-                sharedPrefixLength(tempString, &(inNameList[crossOffset]));
+                sharedPrefixLength(attemptedName, &(inNameList[crossOffset]));
             int prevSim =
-                sharedPrefixLength(tempString, &(inNameList[prevOffset]));
+                sharedPrefixLength(attemptedName, &(inNameList[prevOffset]));
 
             if (crossSim > prevSim) {
-                offset = crossOffset;
+                index = crossOffset;
             } else if (crossSim < prevSim) {
-                offset = prevOffset;
+                index = prevOffset;
             } else {
                 // share same prefix
                 // return shorter one
 
                 if (strlen(&(inNameList[prevOffset])) <
                     strlen(&(inNameList[crossOffset]))) {
-                    offset = prevOffset;
+                    index = prevOffset;
                 } else {
-                    offset = crossOffset;
+                    index = crossOffset;
                 }
             }
         }
     }
 
-    // delete[] tempString;
+    // delete[] attemptedName;
 
     if (outIndex != NULL) {
-        *outIndex = offset;
+        *outIndex = index;
     }
 
-    return &(inNameList[offset]);
+    return &(inNameList[index]);
 }
 
 // results destroyed internally when freeNames called
@@ -299,7 +304,7 @@ int getLastNameIndex(char* inLastName) {
 }
 
 const char* getFirstName(int inIndex, int* outNextIndex) {
-    *outNextIndex = getNameOffsetForward(firstNames, firstNamesLen, inIndex);
+    *outNextIndex = getNameIndexForward(firstNames, firstNamesLen, inIndex);
 
     if (inIndex == *outNextIndex) {
         // loop back around
@@ -310,7 +315,7 @@ const char* getFirstName(int inIndex, int* outNextIndex) {
 }
 
 const char* getLastName(int inIndex, int* outNextIndex) {
-    *outNextIndex = getNameOffsetForward(lastNames, lastNamesLen, inIndex);
+    *outNextIndex = getNameIndexForward(lastNames, lastNamesLen, inIndex);
 
     if (inIndex == *outNextIndex) {
         // loop back around
