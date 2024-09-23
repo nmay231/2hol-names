@@ -13,7 +13,7 @@
             width: 90%;
             max-width: 800px;
             margin: 0 auto;
-            height: 100vh;
+            max-height: 100svh;
         }
 
         @font-face {
@@ -25,6 +25,20 @@
             font-family: 'TwoHours', handwriting;
         }
 
+        .minimal {
+            font-size: 0.8rem;
+            opacity: 0.8;
+            margin-top: 0;
+        }
+
+        .title {
+            margin-bottom: 0.3rem;
+        }
+
+        a {
+            color: lightblue;
+        }
+
     </style>
 
     <script src="./main.mjs" type="module"></script>
@@ -33,11 +47,17 @@
 <body>
     <div style="margin-top: 10vh;">
 
-        <p>Up to date as of 2HOL <code>v20316</code> (2024-08-13)</p>
-        <h3>Closest Names</h3>
-        <div>
-            <h4>Search by</h4>
+        <h1 class="title">Search names in 2HOL</h1>
+        <p class="minimal">Up to date as of 2HOL <code>v20316</code>
+            (2024-08-13)</p>
+        <p>Thanks to Discord user <code>@Tarshish Jupiter</code> for converting
+            the font into a web-compatible font</p>
+        <p>Download (for free!) and support the game <a href="https://twohoursonelife.com/" rel="noreferrer">here</a>
+        </p>
+
+        <div style="margin-top: 2rem;">
             <div style="display: flex; flex-direction: row;">
+                <span style="margin-right: 1rem;">Search by: </span>
                 <div>
                     <input id="first-or-last-first" name="first-or-last" type="radio" value="first" checked />
                     <label for="first-or-last-first">First Name</label>
